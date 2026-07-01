@@ -175,6 +175,14 @@ export async function createApp(
     limit: DEFAULT_JSON_BODY_LIMIT,
     verify: captureRawBody,
   }));
+  // Capture the raw body for form-urlencoded requests too (e.g. Slack
+  // interactivity webhooks), so plugin webhooks can verify provider HMAC
+  // signatures. Without this, req.rawBody is empty for non-JSON bodies.
+  app.use(express.urlencoded({
+    limit: DEFAULT_JSON_BODY_LIMIT,
+    extended: false,
+    verify: captureRawBody,
+  }));
   app.use(httpLogger);
   const privateHostnameGateEnabled = shouldEnablePrivateHostnameGuard({
     deploymentMode: opts.deploymentMode,

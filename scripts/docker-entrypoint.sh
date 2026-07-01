@@ -35,8 +35,10 @@ if [ "$(id -g node)" -ne "$PGID" ]; then
     changed=1
 fi
 
-if [ "$changed" = "1" ]; then
-    chown -R node:node /paperclip
-fi
+# Always fix volume ownership. Platforms like Railway/Fly mount persistent
+# volumes owned by root, and the conditional (remap-only) chown above never
+# fires when the build-time UID already equals the runtime UID — leaving the
+# node user unable to write to /paperclip. Chown every boot to be safe.
+chown -R node:node /paperclip || true
 
 exec gosu node "$@"
